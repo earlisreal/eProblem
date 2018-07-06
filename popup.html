@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
+		<script src="popup.js"></script>
+		<link rel="stylesheet" href="main.css">
+	</head>
+	<body id="main-body">
+		<div id="loading" class="center hidden">
+			<h1><i class="fa fa-spinner fa-spin"></i> Loading...</h1>
+		</div>
+		<form id="handle-form" class="hidden">
+			<label><a href="http://codeforces.com" target="_blank">Codeforces</a> Handle:</label>
+			<div>
+				<button id="save">save</button>
+				<div class="overflow">
+					<input type="text" id="handle">
+				</div>
+			</div>
+		</form>
+		<div id="main-div" class="center hidden">
+			<a id="problem" target="_blank"></a>
+			<h3 id="solved" class="hidden"><i class="fa fa-check-circle green status"></i> Solved!</h3>
+			<h3 id="wrong-answer" class="hidden"><i class="fa fa-times-circle red status"></i> Wrong Answer</h3>
+			<h3 id="pending"><i class="fa fa-question-circle blue status"></i> Pending</h3>
+			<button id="settings"><i class="fa fa-cog"></i></button>
+		</div>
+	</body>
+</html>

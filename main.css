@@ -1,0 +1,56 @@
+body {
+	width: 200px;
+}
+
+.hidden {
+	display: none;
+}
+
+.center {
+	text-align: center;
+}
+
+.status {
+	font-size: 32px;
+}
+
+.solved {
+	color: green;
+}
+
+.green {
+	color: green;
+}
+
+.red {
+	color: red;
+}
+
+.blue {
+	color: blue;
+}
+
+#loading {
+	style="font-size:24px"
+}
+
+#problem {
+	font-size: 28px;
+}
+
+.overflow {
+	overflow: hidden;
+}
+
+#save {
+	float: right;
+}
+
+#settings {
+	cursor: pointer;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: transparent;
+    border: white;
+}

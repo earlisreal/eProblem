@@ -1,0 +1,22 @@
+{
+	"name": "eProblem",
+	"version": "1.0",
+	"description": "Problem of the Day Generator",
+	"permissions": ["storage"],
+	"browser_action": {
+		"default_popup": "popup.html",
+		"default_icon": {
+			"16": "images/code-16.png",
+			"32": "images/code-32.png",
+			"48": "images/code-48.png",
+			"100": "images/code-100.png"
+		}
+	},
+	"icons": {
+		"16": "images/code-16.png",
+		"32": "images/code-32.png",
+		"48": "images/code-48.png",
+		"100": "images/code-100.png"
+	},
+	"manifest_version": 2
+}
