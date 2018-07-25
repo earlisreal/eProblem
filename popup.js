@@ -26,9 +26,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
 function getProblem() {
 	var currentDate = getCurrentDate();
-	var lastCheckDate = localStorage.getItem('lastCheckDate');
-	if (lastCheckDate == null || lastCheckDate != currentDate) {
-		localStorage.setItem('lastCheckDate', currentDate);
+	var lastCheckDate = localStorage.getItem("lastCheckDate");
+	if (lastCheckDate != currentDate) {
+		localStorage.setItem("problemStatus", "pending");
+		localStorage.setItem("lastCheckDate", currentDate);
 		getProblemOfTheDay();
 	}
 	else {
@@ -37,56 +38,50 @@ function getProblem() {
 }
 
 function saveHandle() {
+	console.log("save handle");
 	newHandle = document.getElementById('handle').value;
-	if (newHandle == handle) {
-		// TODO
-		// Do something Here
-	}
-	chrome.storage.sync.set({handle: newHandle}, function() {
-		getProblem();
+	sendRequest("http://codeforces.com/api/user.info?handles=" + newHandle, function (result){
+			var resultStatus = result.status;
+			if (resultStatus == "OK") {
+				if (newHandle == handle) {
+					// TODO
+					// Do something Here
+				}
+				chrome.storage.sync.set({handle: newHandle}, function() {
+					getProblem();
+				});
+			}
+			else {
+				// Invalid Handle
+				// TODO : Change the textbox to red, then add error label
+			}
 	});
-}
-
-function getCurrentDate() {
-	var d = new Date();
-	return d.getFullYear() + "-" + d.getMonth() + "-" + d.getDate();
 }
 
 function getProblemOfTheDay() {
 	getSubmissions(function(result) {
-		if (this.readyState == 4 && this.status == 200) {
-			var submissions = this.response.result;
-			sendRequest("http://codeforces.com/api/problemset.problems", function(result) {
-				if (this.readyState == 4 && this.status == 200) {
-					// Parse result
-					var result = this.response.result;
-					var problems = result.problems;
-					var statistics = result.problemStatistics;
+		var submissions = this.response.result;
+		sendRequest(API_PROBLEMS, function(response) {
+			// Parse result
+			var result = response.result;
+			var problems = response.problems;
+			var statistics = response.problemStatistics;
 
-					var randomProblem;
-					// Get Random Problem
-					// Check if the problem is solved, else generate another random
-					while (true) {
-						var index = Math.floor(Math.random() * problems.length);
-						randomProblem = problems[index];
-						if (getVerdict(randomProblem, submissions) != 0) break;
-					}
+			var randomProblem;
+			// Get Random Problem
+			// Check if the problem is solved, else generate another random
+			while (true) {
 
-					localStorage.setItem('lastProblem', JSON.stringify(randomProblem));
+				var index = Math.floor(Math.random() * problems.length);
+				randomProblem = problems[index];
+				if (getVerdict(randomProblem, submissions) != 0) break;
+			}
 
-					displayProblem(randomProblem);
-				}
-			});
-		}
+			localStorage.setItem('lastProblem', JSON.stringify(randomProblem));
+
+			displayProblem(randomProblem);
+		});
 	});
-}
-
-function sendRequest(url, callback) {
-	var xhttp = new XMLHttpRequest();
-	xhttp.responseType = 'json';
-	xhttp.onreadystatechange = callback;
-	xhttp.open("GET", url, true);
-	xhttp.send();
 }
 
 function displayProblem(problem) {
@@ -99,7 +94,8 @@ function displayProblem(problem) {
 }
 
 function checkSolved(problem) {
-	if (localStorage.getItem("SOLVED" +problem.contestId +"-" +problem.index)) {
+	var problemStatus = localStorage.getItem("problemStatus");
+	if (problemStatus == "solved") {
 		hideElement(document.getElementById('pending'));
 		showElement(document.getElementById('solved'));
 		showMain();
@@ -112,14 +108,17 @@ function checkSolved(problem) {
 
 			var verdict = getVerdict(problem, submissions);
 			if (verdict == 0) {
-				localStorage.setItem("SOLVED" +problem.contestId +"-" +problem.index, true);
+				localStorage.setItem("problemStatus", "solved");
 
 				hideElement(document.getElementById('pending'));
 				showElement(document.getElementById('solved'));
+				changePopupIcon();
 			}
 			else if (verdict == 1){
 				hideElement(document.getElementById('pending'));
 				showElement(document.getElementById('wrong-answer'));
+				localStorage.setItem("problemStatus", "wrong");
+				changePopupIcon();
 			}
 
 			showMain();

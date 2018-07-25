@@ -47,10 +47,18 @@ body {
 }
 
 #settings {
-	cursor: pointer;
     position: absolute;
     bottom: 0;
     right: 0;
     background: transparent;
     border: white;
+}
+
+.transparent {
+    background: transparent;
+    border: white;
+}
+
+.clickable {
+	cursor: pointer;
 }
