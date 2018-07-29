@@ -4,12 +4,14 @@ document.addEventListener('DOMContentLoaded', function () {
 	// localStorage.clear();
 	chrome.storage.sync.get(['handle'], function(result) {
 		if (result.handle == null) {
+			console.log("Has no handle");
 			showElement(document.getElementById('handle-form'));
 			document.getElementById('save').onclick = function(element) {
 				saveHandle();
 			}
 		}
 		else {
+			console.log("Has a handle");
 			showElement(document.getElementById('loading'));
 			handle = result.handle;
 			document.getElementById('handle').value = handle;
@@ -33,6 +35,7 @@ function getProblem() {
 		getProblemOfTheDay();
 	}
 	else {
+		console.log("displaying problem");
 		displayProblem(JSON.parse(localStorage.getItem('lastProblem')));
 	}
 }
@@ -59,22 +62,35 @@ function saveHandle() {
 }
 
 function getProblemOfTheDay() {
-	getSubmissions(function(result) {
-		var submissions = this.response.result;
-		sendRequest(API_PROBLEMS, function(response) {
-			// Parse result
-			var result = response.result;
-			var problems = response.problems;
-			var statistics = response.problemStatistics;
+	console.log("Get problem of the day");
+	sendRequest(API_USER_STATUS +handle, function(response) {
+		var submissions = response.result;
 
+		// Get Random Problem
+		// Check if the problem is solved, else get tougher problem
+		var indexA, indexB;
+		chrome.runtime.getBackgroundPage(function(background){
+			background.indexA;
+			console.log("index a: " + background.indexA);
+			console.log("index b: " + background.indexB);
+			var index = Math.floor(random(background.indexA, background.indexB));
+			console.log(index);
+			while (getVerdict(background.statistics[index], submissions) != 0) {
+				--index;
+				if (index < 0) {
+					// TODO:
+				}
+			}
+
+			// Search the problem using index and contestId
+			var rps = background.statistics[index];
+			var problems = background.problems;
 			var randomProblem;
-			// Get Random Problem
-			// Check if the problem is solved, else generate another random
-			while (true) {
-
-				var index = Math.floor(Math.random() * problems.length);
-				randomProblem = problems[index];
-				if (getVerdict(randomProblem, submissions) != 0) break;
+			for (var i = 0; i < problems.length; ++i) {
+				if (problems[i].index == rps.index && problems[i].contestId == rps.contestId) {
+					randomProblem = problems[i];
+					break;
+				}
 			}
 
 			localStorage.setItem('lastProblem', JSON.stringify(randomProblem));
@@ -85,6 +101,7 @@ function getProblemOfTheDay() {
 }
 
 function displayProblem(problem) {
+	console.log(problem);
 	// Create the Link
 	var link = document.getElementById('problem');
 	link.setAttribute('href', "http://codeforces.com/problemset/problem/" + problem.contestId + "/" + problem.index);
@@ -102,33 +119,26 @@ function checkSolved(problem) {
 		return;
 	}
 
-	getSubmissions(function(result) {
-		if (this.readyState == 4 && this.status == 200) {
-			var submissions = this.response.result;
+	sendRequest(API_USER_STATUS +handle, function(response) {
+		var submissions = response.result;
 
-			var verdict = getVerdict(problem, submissions);
-			if (verdict == 0) {
-				localStorage.setItem("problemStatus", "solved");
+		var verdict = getVerdict(problem, submissions);
+		if (verdict == 0) {
+			localStorage.setItem("problemStatus", "solved");
 
-				hideElement(document.getElementById('pending'));
-				showElement(document.getElementById('solved'));
-				changePopupIcon();
-			}
-			else if (verdict == 1){
-				hideElement(document.getElementById('pending'));
-				showElement(document.getElementById('wrong-answer'));
-				localStorage.setItem("problemStatus", "wrong");
-				changePopupIcon();
-			}
-
-			showMain();
+			hideElement(document.getElementById('pending'));
+			showElement(document.getElementById('solved'));
+			changePopupIcon();
 		}
-	});
-}
+		else if (verdict == 1){
+			hideElement(document.getElementById('pending'));
+			showElement(document.getElementById('wrong-answer'));
+			localStorage.setItem("problemStatus", "wrong");
+			changePopupIcon();
+		}
 
-function getSubmissions(callback) {
-	var submissions;
-	sendRequest("http://codeforces.com/api/user.status?handle=" +handle, callback);
+		showMain();
+	});
 }
 
 function getVerdict(problem, submissions) {

@@ -26,5 +26,5 @@ function changePopupIcon() {
 }
 
 function random(mn, mx) {
-	return Math.random() * (mx - mn) + mn;
+	return Math.floor(Math.random() * (mx - mn)) + mn;
 }

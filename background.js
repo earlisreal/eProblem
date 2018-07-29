@@ -12,35 +12,19 @@ if (lastCheckDate != currentDate) {
 var hi = 5000, low = 4000;
 var solvedCount = [];
 var added = [];
+var indexA, indexB;
+var statistics;
 
-getAllUserSD();
-
-getUserLevel();
+getSolvedCount();
 
 changePopupIcon();
 
-function getAllUserSD() {
-	sendRequest(API_PROBLEMS, function(response) {
-		var statistics = [];
-		var problem = response.result.problemStatistics;
-		for (var i = 0; i < problem.length; ++i) {
-			var p = problem[i];
-			statistics.push(p.solvedCount);
-			solvedCount[p.contestId + p.index] = p.solvedCount;
-		}
-		// console.log(solvedCount);
-		// calculate(statistics);
-	});
-}
-
 function getUserLevel() {
-	console.log("getting user level");
 	chrome.storage.sync.get(['handle'], function(result) {
-		console.log(result);
+		// console.log(result);
 		if (result.handle != null) {
 			sendRequest(API_USER_STATUS +result.handle, function(response) {
-				console.log(response);
-				var stat = response.result;
+				stat = response.result;
 				var statistics = [];
 				for (var i = 0; i < stat.length; ++i) {
 					if (stat[i].verdict == "OK") {
@@ -54,21 +38,15 @@ function getUserLevel() {
 					}
 				}
 
+				// Calculate mean, median, Hi / Low Indexes
 				calculate(statistics);
 
 				console.log("Hi: " + hi);
 				console.log("Low: " + low);
-				// TODO :
-				var indexA = -1, indexB = -1;
+
 				// Use Hi and Low
-				for (var i = 0; i < problems.length; ++i) {
-					if (problems[i].solvedCount) {
-
-					}
-					if (indexA == -1) {
-
-					}
-				}
+				// Get sorted statistics by userSolved
+				getHiLowIndex();
 			});
 		}
 	});
@@ -76,8 +54,9 @@ function getUserLevel() {
 
 function calculate(statistics) {
 	statistics.sort(function(a, b) {return a - b});
-	console.log(statistics);
 	var len = statistics.length;
+	if (len < 1) return;
+
 	var mode = [];
 
 	// Get Arithmetic mean of solvedCount
@@ -106,6 +85,58 @@ function calculate(statistics) {
 
 	hi = round(Math.min(median, mean), 2);
 	low = hi - FLEXIBILITY;
+}
+
+function getSolvedCount() {
+	sendRequest(API_PROBLEMS, function(response) {
+		// console.log(response);
+		statistics = response.result.problemStatistics;
+		problems = response.result.problems;
+		// Sort by Solved Count
+		statistics.sort(function(a, b) {
+			return a.solvedCount - b.solvedCount;
+		});
+
+		// Cache the solved count
+		for (var i = 0; i < statistics.length; ++i) {
+			var p = statistics[i];
+			solvedCount[p.contestId + p.index] = p.solvedCount;
+		}
+
+		getUserLevel();
+	});
+}
+
+function getHiLowIndex() {
+	sendRequest(API_PROBLEMS, function(response) {
+		var l = 0, r = statistics.length - 1;
+		while (l < r) {
+			var mid = Math.floor((l + r) / 2);
+			if (statistics[mid].solvedCount >= low) {
+				r = mid;
+			}
+			else {
+				l = mid + 1;
+			}
+		}
+		indexA = r;
+
+		console.log("A index: " +indexA);
+
+		l = 0, r = statistics.length - 1;
+		while (l < r) {
+			var mid = Math.floor((l + r + 1) / 2);
+			if (statistics[mid].solvedCount <= hi) {
+				l = mid;
+			}
+			else {
+				r = mid - 1;
+			}
+		}
+		indexB = l;
+
+		console.log("B index: " +indexB);
+	});
 }
 
 function round(x, digits) {
