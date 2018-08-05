@@ -1,23 +1,46 @@
-if (localStorage.getItem("problemStatus") == null) {
-	localStorage.setItem("problemStatus", "pending");
-}
-
-var currentDate = getCurrentDate();
-var lastCheckDate = localStorage.getItem('lastCheckDate');
-if (lastCheckDate != currentDate) {
-	localStorage.setItem("problemStatus", "pending");
-	localStorage.setItem("lastCheckDate", currentDate);
-}
-
 var hi = 5000, low = 4000;
 var solvedCount = [];
 var added = [];
 var indexA, indexB;
 var statistics;
 
+chrome.browserAction.disable();
+
+if (localStorage.getItem("problemStatus") == null) {
+	localStorage.setItem("problemStatus", "pending");
+}
+
+if (isNewDay()) {
+	localStorage.setItem("problemStatus", "pending");
+	localStorage.setItem("lastCheckDate", getCurrentDate());
+}
+else {
+
+}
+
 getSolvedCount();
 
-changePopupIcon();
+updatePopupIcon();
+
+function getSolvedCount() {
+	sendRequest(API_PROBLEMS, function(response) {
+		// console.log(response);
+		statistics = response.result.problemStatistics;
+		problems = response.result.problems;
+		// Sort by Solved Count
+		statistics.sort(function(a, b) {
+			return a.solvedCount - b.solvedCount;
+		});
+
+		// Cache the solved count
+		for (var i = 0; i < statistics.length; ++i) {
+			var p = statistics[i];
+			solvedCount[p.contestId + p.index] = p.solvedCount;
+		}
+
+		getUserLevel();
+	});
+}
 
 function getUserLevel() {
 	chrome.storage.sync.get(['handle'], function(result) {
@@ -29,7 +52,7 @@ function getUserLevel() {
 				for (var i = 0; i < stat.length; ++i) {
 					if (stat[i].verdict == "OK") {
 						var pi = stat[i].problem.contestId + stat[i].problem.index;
-						if (added[pi] == null || !added[pi]) {
+						if (added[pi] == false) {
 							if (solvedCount[pi] != null) {
 								statistics.push(solvedCount[pi]);
 								added[pi] = true;
@@ -85,26 +108,6 @@ function calculate(statistics) {
 
 	hi = round(Math.min(median, mean), 2);
 	low = hi - FLEXIBILITY;
-}
-
-function getSolvedCount() {
-	sendRequest(API_PROBLEMS, function(response) {
-		// console.log(response);
-		statistics = response.result.problemStatistics;
-		problems = response.result.problems;
-		// Sort by Solved Count
-		statistics.sort(function(a, b) {
-			return a.solvedCount - b.solvedCount;
-		});
-
-		// Cache the solved count
-		for (var i = 0; i < statistics.length; ++i) {
-			var p = statistics[i];
-			solvedCount[p.contestId + p.index] = p.solvedCount;
-		}
-
-		getUserLevel();
-	});
 }
 
 function getHiLowIndex() {

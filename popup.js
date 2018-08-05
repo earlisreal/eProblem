@@ -30,8 +30,6 @@ function getProblem() {
 	var currentDate = getCurrentDate();
 	var lastCheckDate = localStorage.getItem("lastCheckDate");
 	if (lastCheckDate != currentDate) {
-		localStorage.setItem("problemStatus", "pending");
-		localStorage.setItem("lastCheckDate", currentDate);
 		getProblemOfTheDay();
 	}
 	else {
@@ -75,7 +73,7 @@ function getProblemOfTheDay() {
 			console.log("index b: " + background.indexB);
 			var index = Math.floor(random(background.indexA, background.indexB));
 			console.log(index);
-			while (getVerdict(background.statistics[index], submissions) != 0) {
+			while (getVerdict(background.statistics[index], submissions) == 0) {
 				--index;
 				if (index < 0) {
 					// TODO:
@@ -94,6 +92,8 @@ function getProblemOfTheDay() {
 			}
 
 			localStorage.setItem('lastProblem', JSON.stringify(randomProblem));
+			localStorage.setItem("problemStatus", "pending");
+			localStorage.setItem("lastCheckDate", getCurrentDate());
 
 			displayProblem(randomProblem);
 		});

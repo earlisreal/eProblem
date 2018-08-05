@@ -20,7 +20,16 @@ function getCurrentDate() {
 	return d.getFullYear() + "-" + d.getMonth() + "-" + d.getDate();
 }
 
-function changePopupIcon() {
+function isNewDay() {
+	var currentDate = getCurrentDate();
+	var lastCheckDate = localStorage.getItem('lastCheckDate');
+	if (lastCheckDate != currentDate) {
+		return true;
+	}
+	return false;
+}
+
+function updatePopupIcon() {
 	chrome.browserAction.setIcon({path: 'images/' +localStorage.getItem('problemStatus') +'.png'}, function() {
 	});
 }
