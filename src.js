@@ -1,5 +1,5 @@
-// var API_PROBLEMS = "http://codeforces.com/api/problemset.problems";
-var API_PROBLEMS = "problemset.problems";
+var API_PROBLEMS = "http://codeforces.com/api/problemset.problems";
+// var API_PROBLEMS = "problemset.problems";
 var API_USER_STATUS = "http://codeforces.com/api/user.status?handle=";
 var FLEXIBILITY = 400;
 
@@ -29,6 +29,10 @@ function isNewDay() {
 	return false;
 }
 
+function hasHandle() {
+	return localStorage.getItem('handle') != null;
+}
+
 function updatePopupIcon() {
 	chrome.browserAction.setIcon({path: 'images/' +localStorage.getItem('problemStatus') +'.png'}, function() {
 	});
@@ -36,4 +40,11 @@ function updatePopupIcon() {
 
 function random(mn, mx) {
 	return Math.floor(Math.random() * (mx - mn)) + mn;
+}
+
+function round(x, digits) {
+	var roundTo = Math.pow(10, digits);
+	x = Math.floor(x / roundTo);
+	x *= roundTo;
+	return x;
 }
