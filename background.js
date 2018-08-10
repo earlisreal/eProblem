@@ -25,6 +25,7 @@ handle = localStorage.getItem('handle');
 
 if (isNewDay()) {
 	console.log("its a new Day!");
+	localStorage.setItem("problemStatus", "pending");
 	getSolvedCount();
 	updatePopupIcon();
 }
@@ -51,7 +52,7 @@ function getSolvedCount() {
 		}
 
 		if (handle != null) {
-			getuserLevel(handle);
+			getUserLevel(handle);
 		}
 		else {
 			console.log("handle is null");
